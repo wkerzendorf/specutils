@@ -12,7 +12,6 @@ except ImportError:
     scipy_available = False
 
 import copy
-
 import numpy as np
 
 
@@ -20,7 +19,6 @@ def warn2logging(message, logstream=None):
     #!!!!!! Thomas you are the logging expert, I will call this function whenever I want to log to warn.
     #!!!!! Can you tell me what to write in here.
     print 'WARNING: %s' % message
-    
     
     
 def merge_meta(meta1, meta2, logstream=None):
@@ -82,7 +80,7 @@ class Spectrum1D(NDData):
                         wcs=wcs, meta=meta, units=units,
                         copy=copy, validate=validate)
         
-        if wcs==None:
+        if wcs is None:
             self.dispersion = dispersion
             self.dispersion_unit = dispersion_unit
         else:
@@ -155,17 +153,10 @@ class Spectrum1D(NDData):
         """
         
         if units == 'dispersion':
-            if step != None:
+            if step is not None:
                 raise ValueError('step can only be specified for units=pixel')
-            if start == None:
-                start_idx = None
-            else:
-                start_idx = self.dispersion.searchsorted(start)
-            
-            if stop == None:
-                stop_idx = None
-            else:
-                stop_idx = self.dispersion.searchsorted(stop)
+                
+            start_idx, stop_idx = self.dispersion.searchsorted([start, stop])
             
             spectrum_slice = slice(start_idx, stop_idx)
         elif units == 'index':
@@ -187,10 +178,7 @@ class Spectrum1D(NDData):
     def __add__(self, operand_flux):
 
         new_flux = self.flux + operand_flux
-        
-        
         new_meta = merge_meta(self.meta, operand_meta)
-        
         return self.__class__(new_flux,
                               #!!! What if it's a WCS
                               self.dispersion.copy(),

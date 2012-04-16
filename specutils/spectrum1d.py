@@ -1,6 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 #This module implements the Spectrum1D class. It is eventually supposed to migrate to astropy core
 
+import copy
+import numpy as np
+import warnings
+
+#from astropy.config import logger
+import logging as logger
+
 from astropy.nddata import NDData
 
 #!!!! checking scipy availability
@@ -11,17 +18,9 @@ try:
 except ImportError:
     scipy_available = False
 
-import copy
-import numpy as np
 
 
-def warn2logging(message, logstream=None):
-    #!!!!!! Thomas you are the logging expert, I will call this function whenever I want to log to warn.
-    #!!!!! Can you tell me what to write in here.
-    print 'WARNING: %s' % message
-    
-    
-def merge_meta(meta1, meta2, logstream=None):
+def merge_meta(meta1, meta2):
     #Merging meta information and removing all duplicate keys -- warning what keys were removed
     #should be in NDData somewhere
     meta1_keys = meta1.viewkeys()
@@ -31,7 +30,7 @@ def merge_meta(meta1, meta2, logstream=None):
     duplicates = meta1_keys & meta2_keys
     
     if len(duplicates) > 0:
-        warn2logging('Removing duplicate keys found in meta data: ' + ','.join(duplicates), logstream=logstream)
+        logger.warn('Removing duplicate keys found in meta data: ' + ','.join(duplicates))
     
     new_meta = copy.deepcopy(meta1)
     new_meta.update(copy.deepcopy(meta2))
@@ -118,8 +117,7 @@ class Spectrum1D(NDData):
             if kind != 'linear':
                 raise ValueError('Only \'linear\' interpolation is available if scipy is not installed')
             
-            #### Erik & Thomas --- Can you tell me which logging stream to attach to and warn,
-            #### about that bounds_error & fill_value is ignored as scipy not available
+            logger.warn('bounds_error and fill_value keywords ignored as scipy not available')
             interpolated_flux = np.interp(new_)
         else:
             spectrum_interp = interpolate.interp1d(self.dispersion, self.flux,
@@ -162,15 +160,21 @@ class Spectrum1D(NDData):
         elif units == 'index':
             spectrum_slice = slice(start, stop, step)
         else:
-            raise ValueError("units keyword can only have the values 'disp', 'index'")
+            raise ValueError("units keyword can only have the values 'dispersion', 'index'")
         
         
         if copy:
+            
+            
+            new_error = self.error[spectrum_slice] if self.error is not None else None
+            new_mask = self.mask[spectrum_slice] if self.mask is not None else None
+            
+            
             return self.__class__(self.flux[spectrum_slice],
                                   self.dispersion[spectrum_slice],
-                                  error=self.error[spectrum_slice],
-                                  mask=self.mask[spectrum_slice],
-                                  meta=copy.deepcopy(meta))
+                                  error=new_error,
+                                  mask=new_mask,
+                                  meta=copy.deepcopy(self.meta))
         else:
             raise NotImplementedError('Inplace will be implemented soon')
 

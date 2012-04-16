@@ -188,3 +188,54 @@ class Spectrum1D(NDData):
                               #!!! What if it's a WCS
                               self.dispersion.copy(),
                               meta=new_meta)
+        
+    @spec_operation
+    def __sub__(self, operand_flux, operand_meta):
+        
+        new_flux = self.flux - operand_flux
+        new_meta = merge_meta(self.meta, operand_meta)
+        return self.__class__(new_flux,
+                              self.dispersion.copy(),
+                              meta=new_meta)
+        
+    @spec_operation
+    def __mul__(self, operand_flux, operand_meta):
+        new_flux = self.flux * operand_flux
+        new_meta = merge_meta(self.meta, operand_meta)
+        return self.__class__(new_flux,
+                             self.dispersion.copy(),
+                             meta=new_meta)
+        
+    @spec_operation
+    def __div__(self, operand_flux, operand_meta):
+        new_flux = self.flux / operand_flux
+        new_meta = merge_meta(self.meta, operand_meta)
+        return self.__class__(new_flux,
+                              self.dispersion.copy(),
+                              meta=new_meta)
+        
+    @spec_operation
+    def __pow__(self, operand_flux, operand_meta):
+        new_flux = self.flux ** operand_flux
+        new_meta = merge_meta(self.meta, operand_meta)
+        
+        return self.__class__(new_flux,
+                              self.dispersion.copy(),
+                              meta=new_meta)
+    
+    # reverse functions
+    def __radd__(self, operand_flux, operand_meta, **kwargs):
+        return self.__add__(operand_flux, operand_meta, **kwargs)
+        
+    def __rsub__(self, operand_flux, operand_meta, **kwargs):
+        return self.__sub__(operand_flux, operand_meta, **kwargs)
+        
+    def __rmul__(self, operand_flux, operand_meta, **kwargs):
+        return self.__mul__(operand_flux, operand_meta, **kwargs)
+            
+    def __rdiv__(self, operand_flux, operand_meta, **kwargs):
+        return self.__div__(operand_flux, operand_meta, **kwargs)
+    
+    def __rpow__(self, operand_flux, operand_meta, **kwargs):
+        return self.__pow__(operand_flux, operand_meta, **kwargs)
+    

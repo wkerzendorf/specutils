@@ -50,14 +50,15 @@ def spec_operation(func):
                 raise ValueError('Dispersion and units need to match for both Spectrum1D objects')
             
             flux = operand.flux
+            meta = operand.meta
         elif np.isscalar(operand):
             flux = operand
-            
+            meta = {}
         else:
             raise ValueError("unsupported operand type(s) for operation: %s and %s" %
                              (type(self), type(operand)))
         
-        return func(self, flux)
+        return func(self, flux, meta)
         
     return convert_operands
 
@@ -179,7 +180,7 @@ class Spectrum1D(NDData):
             raise NotImplementedError('Inplace will be implemented soon')
 
     @spec_operation
-    def __add__(self, operand_flux):
+    def __add__(self, operand_flux, operand_meta):
 
         new_flux = self.flux + operand_flux
         new_meta = merge_meta(self.meta, operand_meta)

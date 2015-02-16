@@ -246,15 +246,26 @@ class FITSWCSSpectrum(object):
             transform_matrix = np.matrix(np.zeros((matrix_dim, matrix_dim)))
             matrix_element_keyword_pattern = re.compile('cd(\d)_(\d)',
                                                         re.IGNORECASE)
-            for matrix_element_keyword in self.fits_header['cd?_?']:
+
+            for matrix_element_keyword, value in \
+                    self.fits_header['cd?_?'].items():
+
                 i, j = map(int, matrix_element_keyword_pattern.match(
                     matrix_element_keyword).groups())
-                transform_matrix[j - 1, i - 1] = self.fits_header[
-                    matrix_element_keyword]
+
+                if i > matrix_dim or j > matrix_dim:
+                    #making sure that in the case of a transform matrix with
+                    #dimensions that are greater than the WCSDim that these
+                    #values are 0.0
+                    assert np.isclose(value, 0.0)
+                    continue
+                else:
+                    transform_matrix[j - 1, i - 1] = self.fits_header[
+                        matrix_element_keyword]
             if cdelt is not None:
                 for i in range(matrix_dim):
                     if cdelt[i] is not None:
-                        np.testing.assert_almost_equal(cdelt[i],
+                        assert np.isclose(cdelt[i],
                                                        transform_matrix[i, i])
 
             return transform_matrix
